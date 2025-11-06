@@ -1,0 +1,127 @@
+package project212;
+
+public class Reviews {
+
+
+	private int reviewId;
+	private int productId; 
+	private int customerId;
+	private int ratingScore;
+	private String textComment;
+
+	public Reviews( int reviewId, int productId, int customerId, int ratingScore, String textComment) {
+		this.reviewId = reviewId;
+		this.productId = productId;
+		this.customerId = customerId;
+		this.ratingScore = ratingScore;
+		this.textComment = textComment;
+	}
+
+	//----------------------------------------------------------------------------------//
+
+	public boolean addReview (Products product, Reviews review) {
+		product.getReviewsList().findFirst();
+		while (!product.getReviewsList().last()) {
+		if (product.getReviewsList().retrieve().getReviewId() == review.getReviewId())
+			return false;
+		product.getReviewsList().findNext();
+		}
+		product.getReviewsList().insert(review);
+		return true;
+	}
+
+	//----------------------------------------------------------------------------------//
+
+	public boolean editReview( Products product, int reviewId, int ratingScore, String textComment) { 
+
+		if (product.getReviewsList().empty())
+			return false;
+		
+		while (!product.getReviewsList().last()) {
+			if (product.getReviewsList().retrieve().getReviewId() == reviewId);
+			product.getReviewsList().retrieve().setTextComment(textComment);
+			product.getReviewsList().retrieve().setRatingScore(ratingScore);
+			return true;
+		}
+		//for last element
+		if (product.getReviewsList().retrieve().getReviewId() == reviewId){
+			product.getReviewsList().retrieve().setTextComment(textComment);
+			product.getReviewsList().retrieve().setRatingScore(ratingScore);
+			return true;
+		}
+
+		return false;
+
+	}
+
+	//----------------------------------------------------------------------------------//
+
+	public int averageRating(LinkedList<Reviews> reviews) { // done
+
+		if (reviews.empty()) {
+			System.out.println("No reviews found");
+			return 0;
+		}
+
+		int sum =0;
+
+		reviews.findFirst();
+		while(!(reviews.last())) {
+			sum += reviews.retrieve().getRatingScore();
+			reviews.findNext();
+		}
+		sum += reviews.retrieve().getRatingScore(); // for the last element
+
+		int averageRating = sum / reviews.getSize(); // getSize() returns the count of the elements
+		return averageRating;
+	}
+
+	//----------------------------------------------------------------------------------//
+
+	public String toString() {
+		return "Review ID = " + reviewId + " || Product ID = " + productId + " || Customer ID = " + customerId + " || Rating score = " + ratingScore + " || Comment = " + textComment +"\n";
+	}
+
+	public int getReviewId() {
+		return reviewId;
+	}
+
+	public void setReviewId(int reviewId) {
+		this.reviewId = reviewId;
+	}
+
+	public int getProductId() {
+		return productId;
+	}
+
+	public void setProductId(int productId) {
+		this.productId = productId;
+	}
+
+	public int getCustomerId() {
+		return customerId;
+	}
+
+	public void setCustomerId(int customerId) {
+		this.customerId = customerId;
+	}
+
+	public int getRatingScore() {
+		return ratingScore;
+	}
+
+	public void setRatingScore(int ratingScore) {
+		if (ratingScore >= 1 && ratingScore <= 5 )
+			this.ratingScore = ratingScore;
+	}
+
+	public String getTextComment() {
+		return textComment;
+	}
+
+	public void setTextComment(String textComment) {
+		this.textComment = textComment;
+	}
+
+
+}
