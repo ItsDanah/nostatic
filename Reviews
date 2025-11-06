@@ -1,163 +1,69 @@
 package project212;
 
-// The Reviews class represents a review given by a customer to a product.
+// The Reviews class represents a single review for a specific product.
 public class Reviews {
 
     //--- Attributes ---//
-    private int reviewId;           // Unique review identifier
-    private int productId;          // ID of the reviewed product
-    private int customerId;         // ID of the customer who wrote the review
-    private int ratingScore;        // Rating given by the customer (1–5)
-    private String textComment;     // Text feedback written by the customer
+    private String reviewerName;   // Name of the customer writing the review
+    private String comment;        // The text feedback written by the customer
+    private double rating;         // Rating given to the product (e.g., 1.0 - 5.0 scale)
 
     //----------------------------------------------------------------------------------//
-    // Constructor: initializes a review object with all details
-    public Reviews(int reviewId, int productId, int customerId, int ratingScore, String textComment) {
-        this.reviewId = reviewId;           // Assign review ID
-        this.productId = productId;         // Assign product ID (links review to product)
-        this.customerId = customerId;       // Assign customer ID (links review to reviewer)
-        this.ratingScore = ratingScore;     // Set score (1–5)
-        this.textComment = textComment;     // Store comment text
+    // Constructor: Creates a review with reviewer name, comment, and rating
+    public Reviews(String reviewerName, String comment, double rating) {
+        this.reviewerName = reviewerName;   // Assign reviewer name
+        this.comment = comment;             // Assign comment text
+        setRating(rating);                  // ⭐ Added/Changed: Validate and assign rating using setter
     }
 
     //----------------------------------------------------------------------------------//
-    // Adds a review to a specific product’s review list (if reviewId not already exists)
-    public boolean addReview(Products product, Reviews review) {
-
-        // Move to first element of the product’s reviews list
-        product.getReviewsList().findFirst();
-
-        // Iterate through the reviews list to ensure no duplicate ID
-        while (!product.getReviewsList().last()) {
-            if (product.getReviewsList().retrieve().getReviewId() == review.getReviewId())
-                return false; // Duplicate review found, don’t add
-            product.getReviewsList().findNext(); // Move to next review
-        }
-
-        // Check last review node as well
-        if (product.getReviewsList().retrieve() != null &&
-            product.getReviewsList().retrieve().getReviewId() == review.getReviewId())
-            return false;
-
-        // If no duplicate found, insert new review
-        product.getReviewsList().insert(review);
-        return true; // Added successfully
+    // Default constructor: allows creating an empty review if needed
+    public Reviews() {
+        reviewerName = "";                  // Initialize with empty name
+        comment = "";                       // Initialize with empty comment
+        rating = 0;                         // Default rating set to 0
     }
 
     //----------------------------------------------------------------------------------//
-    // Edits an existing review (by ID) — allows updating rating and comment text
-    public boolean editReview(Products product, int reviewId, int ratingScore, String textComment) {
-
-        // Return false if no reviews in the product
-        if (product.getReviewsList().empty())
-            return false;
-
-        // Start at first review
-        product.getReviewsList().findFirst();
-
-        // Iterate through list to find the review to edit
-        while (!product.getReviewsList().last()) {
-            if (product.getReviewsList().retrieve().getReviewId() == reviewId) {
-                // ⭐ Changed: removed semicolon that broke the condition earlier
-                product.getReviewsList().retrieve().setTextComment(textComment); // Update comment
-                product.getReviewsList().retrieve().setRatingScore(ratingScore); // Update score
-                return true;
-            }
-            product.getReviewsList().findNext(); // Move to next review
-        }
-
-        // Check last element too
-        if (product.getReviewsList().retrieve().getReviewId() == reviewId) {
-            product.getReviewsList().retrieve().setTextComment(textComment);
-            product.getReviewsList().retrieve().setRatingScore(ratingScore);
-            return true;
-        }
-
-        return false; // Review not found
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Computes the average rating score of all reviews for a product
-    public int averageRating(LinkedList<Reviews> reviews) {
-
-        // If no reviews exist, return 0
-        if (reviews.empty()) {
-            System.out.println("No reviews found.");
-            return 0;
-        }
-
-        int sum = 0; // To store total of all ratings
-
-        // Start from first review
-        reviews.findFirst();
-
-        // Add all rating scores except the last one (loop condition)
-        while (!reviews.last()) {
-            sum += reviews.retrieve().getRatingScore(); // Add rating to total
-            reviews.findNext();                         // Move to next review
-        }
-
-        // Add the last review rating as well
-        sum += reviews.retrieve().getRatingScore();
-
-        // ⭐ Changed: Average calculated using integer division (rounded down)
-        int averageRating = sum / reviews.getSize();
-
-        return averageRating; // Return average score
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Returns a formatted string representing this review
+    // Displays review information in a readable format
     public String toString() {
-        return "Review ID = " + reviewId +
-               " || Product ID = " + productId +
-               " || Customer ID = " + customerId +
-               " || Rating score = " + ratingScore +
-               " || Comment = " + textComment + "\n";
+        // Combines all review fields in a single formatted line
+        return "Reviewer: " + reviewerName +
+               " || Rating: " + rating +
+               " || Comment: \"" + comment + "\"";
     }
 
     //----------------------------------------------------------------------------------//
-    //--- Getters and Setters (Accessors and Mutators) ---//
+    //--- Getters and Setters ---//
 
-    public int getReviewId() {
-        return reviewId; // Return review ID
+    public String getReviewerName() {
+        return reviewerName;                // Return name of reviewer
     }
 
-    public void setReviewId(int reviewId) {
-        this.reviewId = reviewId; // Update review ID
+    public void setReviewerName(String reviewerName) {
+        this.reviewerName = reviewerName;   // Update reviewer name
     }
 
-    public int getProductId() {
-        return productId; // Return product ID
+    public String getComment() {
+        return comment;                     // Return review comment text
     }
 
-    public void setProductId(int productId) {
-        this.productId = productId; // Update product ID
+    public void setComment(String comment) {
+        this.comment = comment;             // Update review comment
     }
 
-    public int getCustomerId() {
-        return customerId; // Return customer ID
+    public double getRating() {
+        return rating;                      // Return numeric rating
     }
 
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId; // Update customer ID
-    }
-
-    public int getRatingScore() {
-        return ratingScore; // Return rating score
-    }
-
-    public void setRatingScore(int ratingScore) {
-        // ⭐ Added: validation for rating score range (1–5)
-        if (ratingScore >= 1 && ratingScore <= 5)
-            this.ratingScore = ratingScore;
-    }
-
-    public String getTextComment() {
-        return textComment; // Return comment text
-    }
-
-    public void setTextComment(String textComment) {
-        this.textComment = textComment; // Update comment text
+    public void setRating(double rating) {
+        // ⭐ Added/Changed: Ensure rating stays within valid range (1.0 to 5.0)
+        if (rating < 1.0) {                 // If rating too low
+            this.rating = 1.0;              // Clamp to minimum
+        } else if (rating > 5.0) {          // If rating too high
+            this.rating = 5.0;              // Clamp to maximum
+        } else {
+            this.rating = rating;           // Otherwise accept it
+        }
     }
 }
