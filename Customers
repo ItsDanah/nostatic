@@ -1,151 +1,223 @@
 package project212;
 
-// The Customers class represents a single customer who can place orders.
+// This class represents a customer in the e-commerce system
 public class Customers {
 
     //--- Attributes ---//
-    private int customerId;                     // Unique ID for each customer
-    private String name;                        // Customer's full name
-    private String email;                       // Customer's email address
-    private String phone;                       // Customer's contact number
-    private LinkedList<Orders> ordersList;      // List of all orders placed by this customer
+    private LinkedList<Orders> orderList; // Each customer has their own list of orders
+    private int customerId;               // Unique ID for this customer
+    private String name;                  // Customer's name
+    private String email;                 // Customer's email
+    private String phone;                 // Customer's phone number
 
     //----------------------------------------------------------------------------------//
-    // Constructor: initializes a new customer with their basic information
+    // Constructor: creates a customer and initializes their order list
     public Customers(int customerId, String name, String email, String phone) {
-        this.customerId = customerId;           // Assigns customer ID
-        this.name = name;                       // Assigns name
-        this.email = email;                     // Assigns email
-        this.phone = phone;                     // Assigns phone number
-        this.ordersList = new LinkedList<>();   // ⭐ Added: initializes the customer's order list
+        this.customerId = customerId;       // Assign customer ID
+        this.name = name;                   // Assign name
+        this.email = email;                 // Assign email
+        this.phone = phone;                 // Assign phone number
+        this.orderList = new LinkedList<>(); // ⭐ Create an empty order list for this customer
     }
 
     //----------------------------------------------------------------------------------//
-    // Places a new order and adds it to the customer's order list
-    public void placeOrder(Orders order) {
-        // Check if the order ID already exists to avoid duplicates
-        if (searchById(order.getOrderId()) != null) {
-            System.out.println("Order already exists for this customer.");
-            return; // Stop execution if duplicate found
-        }
-
-        // Insert order into customer's list
-        ordersList.insert(order);
-        System.out.println("Order placed successfully!");
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Cancels an order by its ID if it is still pending
-    public void cancelOrder(int orderId) {
-
-        // Search for the order by ID
-        Orders canceledOrder = searchById(orderId);
-
-        // If order not found, print error message
-        if (canceledOrder == null) {
-            System.out.println("No order found with this ID.");
+    // Adds a new customer to a given customers list
+    public void addCustomer(LinkedList<Customers> customers, Customers customer) {
+        // Search if customer with same ID already exists
+        Customers existing = searchById(customers, customer.getCustomerId());
+        if (existing != null) {             // Prevent duplicates
+            System.out.println("Customer already exists.");
             return;
         }
 
-        // Check if order is pending (only pending orders can be canceled)
-        if (canceledOrder.getStatus().equalsIgnoreCase("pending")) {
-            canceledOrder.setStatus("Canceled");
-            System.out.println("Order has been canceled successfully.");
-        } else {
-            System.out.println("You can only cancel pending orders.");
-        }
+        // Insert the new customer
+        customers.insert(customer);
+        System.out.println("Customer added successfully.");
     }
 
     //----------------------------------------------------------------------------------//
-    // Searches for an order by ID within this customer's order list
-    public Orders searchById(int orderId) {
+    // Removes a customer from the list using their ID
+    public void removeCustomer(LinkedList<Customers> customers, int customerId) {
+        if (customers.empty()) {            // If no customers exist
+            System.out.println("No customers found.");
+            return;
+        }
 
-        // Return null if customer has no orders
-        if (ordersList.empty())
+        customers.findFirst();              // Start from first node
+        while (!customers.last()) {         // Traverse until second last
+            if (customers.retrieve().getCustomerId() == customerId) {
+                customers.remove();         // Remove the matching customer
+                System.out.println("Customer removed successfully.");
+                return;
+            }
+            customers.findNext();           // Move to next node
+        }
+
+        // Check last element
+        if (customers.retrieve().getCustomerId() == customerId) {
+            customers.remove();
+            System.out.println("Customer removed successfully.");
+            return;
+        }
+
+        System.out.println("Customer not found.");
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Updates customer's contact details (email or phone)
+    public void updateCustomer(LinkedList<Customers> customers, int customerId, String email, String phone) {
+        Customers customer = searchById(customers, customerId); // Find target customer
+
+        if (customer == null) {             // If not found
+            System.out.println("No customer found with that ID.");
+            return;
+        }
+
+        // Update fields
+        customer.setEmail(email);
+        customer.setPhone(phone);
+        System.out.println("Customer information updated successfully.");
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Searches for a customer by ID
+    public Customers searchById(LinkedList<Customers> customers, int customerId) {
+        if (customers.empty())              // If list is empty, nothing to find
             return null;
 
-        // Start from first order
-        ordersList.findFirst();
+        customers.findFirst();              // Start from first node
+        while (!customers.last()) {
+            if (customers.retrieve().getCustomerId() == customerId)
+                return customers.retrieve(); // Found, return reference
+            customers.findNext();
+        }
 
-        // Traverse until last node
-        while (!ordersList.last()) {
-            if (ordersList.retrieve().getOrderId() == orderId)
-                return ordersList.retrieve(); // Found order
-            ordersList.findNext(); // Move to next
+        // Check last node
+        if (customers.retrieve().getCustomerId() == customerId)
+            return customers.retrieve();
+
+        return null;                        // Not found
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Searches customers by name (case-insensitive)
+    public LinkedList<Customers> searchByName(LinkedList<Customers> customers, String name) {
+        LinkedList<Customers> matches = new LinkedList<>(); // List to hold matches
+
+        if (customers.empty())              // If list is empty, return empty
+            return matches;
+
+        customers.findFirst();
+        while (!customers.last()) {
+            if (customers.retrieve().getName().toLowerCase().contains(name.toLowerCase()))
+                matches.insert(customers.retrieve()); // Add if name matches
+            customers.findNext();
+        }
+
+        // Check last node
+        if (customers.retrieve().getName().toLowerCase().contains(name.toLowerCase()))
+            matches.insert(customers.retrieve());
+
+        return matches;                     // Return list of matched customers
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Displays a customer's order list (all their orders)
+    public void displayOrders() {
+        if (orderList.empty()) {            // If no orders yet
+            System.out.println("No orders for this customer.");
+            return;
+        }
+
+        System.out.println("Orders for " + name + ":");
+        orderList.findFirst();
+        while (!orderList.last()) {
+            System.out.println(orderList.retrieve().toString()); // Show each order
+            orderList.findNext();
+        }
+
+        // Show last order
+        System.out.println(orderList.retrieve().toString());
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Adds an order to this customer’s order list
+    public void addOrder(Orders order) {
+        if (orderList.empty()) {            // If order list empty, add directly
+            orderList.insert(order);
+            System.out.println("Order added successfully.");
+            return;
+        }
+
+        // Check if order already exists (by ID)
+        orderList.findFirst();
+        while (!orderList.last()) {
+            if (orderList.retrieve().getOrderId() == order.getOrderId()) {
+                System.out.println("Order already exists.");
+                return;
+            }
+            orderList.findNext();
         }
 
         // Check last order
-        if (ordersList.retrieve().getOrderId() == orderId)
-            return ordersList.retrieve();
-
-        return null; // Not found
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Displays all orders placed by the customer
-    public void displayOrders() {
-        if (ordersList.empty()) {
-            System.out.println("This customer has no orders.");
+        if (orderList.retrieve().getOrderId() == order.getOrderId()) {
+            System.out.println("Order already exists.");
             return;
         }
 
-        // Print each order
-        ordersList.findFirst();
-        while (!ordersList.last()) {
-            System.out.println(ordersList.retrieve());
-            ordersList.findNext();
-        }
-        // Print last order too
-        System.out.println(ordersList.retrieve());
+        orderList.insert(order);            // Add new order
+        System.out.println("Order added successfully.");
     }
 
     //----------------------------------------------------------------------------------//
-    // ⭐ Added: method to return the customer’s linked list of orders
-    public LinkedList<Orders> getOrdersList() {
-        return ordersList; // Gives access to this customer’s order list
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Returns formatted details of the customer
+    // Returns a formatted string with customer info
     public String toString() {
         return "Customer ID = " + customerId +
                " || Name = " + name +
                " || Email = " + email +
-               " || Phone = " + phone + "\n";
+               " || Phone = " + phone;
     }
 
     //----------------------------------------------------------------------------------//
-    //--- Getters and Setters (Accessors and Mutators) ---//
+    //--- Getters and Setters ---//
+
+    public LinkedList<Orders> getOrderList() {
+        return orderList;                   // Return all orders for this customer
+    }
+
+    public void setOrderList(LinkedList<Orders> orderList) {
+        this.orderList = orderList;         // Replace customer's order list
+    }
 
     public int getCustomerId() {
-        return customerId; // Return ID
+        return customerId;                  // Return customer ID
     }
 
     public void setCustomerId(int customerId) {
-        this.customerId = customerId; // Update ID
+        this.customerId = customerId;       // Update customer ID
     }
 
     public String getName() {
-        return name; // Return name
+        return name;                        // Return name
     }
 
     public void setName(String name) {
-        this.name = name; // Update name
+        this.name = name;                   // Update name
     }
 
     public String getEmail() {
-        return email; // Return email
+        return email;                       // Return email
     }
 
     public void setEmail(String email) {
-        this.email = email; // Update email
+        this.email = email;                 // Update email
     }
 
     public String getPhone() {
-        return phone; // Return phone number
+        return phone;                       // Return phone number
     }
 
     public void setPhone(String phone) {
-        this.phone = phone; // Update phone number
+        this.phone = phone;                 // Update phone number
     }
 }
