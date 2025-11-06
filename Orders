@@ -1,114 +1,153 @@
 package project212;
 
 // The Orders class represents a single order placed by a customer.
-// Each order has its own list of products.
 public class Orders {
 
     //--- Attributes ---//
-    private int orderId;                          // Unique order identifier
-    private String orderDate;                     // Date the order was placed
-    private LinkedList<Products> productList;     // List of products in this order
-    private double totalAmount;                   // Total cost of the order
+    private int orderId;                         // Unique ID for the order
+    private Customers customer;                  // The customer who placed this order
+    private LinkedList<Products> productsList;   // List of products included in this order
+    private double totalPrice;                   // Total price of all products in this order
+    private String orderDate;                    // The date when the order was placed
+    private String status;                       // Order status (e.g., Pending, Shipped, Canceled)
 
     //----------------------------------------------------------------------------------//
-    // Constructor: Initializes a new order with ID, date, and an empty product list
-    public Orders(int orderId, String orderDate) {
-        this.orderId = orderId;                   // Set order ID
-        this.orderDate = orderDate;               // Set date
-        this.productList = new LinkedList<>();    // Create new empty linked list for products // ⭐ Added/Changed
-        this.totalAmount = 0.0;                   // Initialize total amount to 0
+    // Constructor: creates an order with all details and initializes its product list
+    public Orders(int orderId, Customers customer, String orderDate, String status) {
+        this.orderId = orderId;             // Assign order ID
+        this.customer = customer;           // Assign reference to the customer
+        this.orderDate = orderDate;         // Assign the order date
+        this.status = status;               // Assign the order status
+        this.productsList = new LinkedList<>(); // ⭐ Added/Changed: Initialize a new linked list of products
+        this.totalPrice = 0;                // ⭐ Added/Changed: Initialize total price to 0
     }
 
     //----------------------------------------------------------------------------------//
     // Adds a product to this order
     public void addProduct(Products product) {
-        productList.insert(product);               // Insert product into the order's product list
-        totalAmount += product.getPrice();         // Increase total order amount by product price // ⭐ Added/Changed
+        productsList.insert(product);                      // Insert the product into the linked list
+        totalPrice += product.getPrice();                   // ⭐ Added/Changed: Update total price automatically
+        System.out.println("Product added to order successfully.");
     }
 
     //----------------------------------------------------------------------------------//
-    // Removes a product from this order by product ID
-    public void removeProduct(int productId) {
-        if (productList.empty()) {                 // If no products in the order
-            System.out.println("No products found in this order.");
-            return;
-        }
-
-        productList.findFirst();                   // Move pointer to the first product
-        while (!productList.last()) {              // Iterate through list
-            if (productList.retrieve().getProductId() == productId) { // If found
-                totalAmount -= productList.retrieve().getPrice();     // ⭐ Added/Changed: update total
-                productList.remove();               // Remove the product
-                System.out.println("Product removed from order.");
-                return;
-            }
-            productList.findNext();                // Move to next product
-        }
-
-        // Check the last product
-        if (productList.retrieve().getProductId() == productId) {
-            totalAmount -= productList.retrieve().getPrice();         // ⭐ Added/Changed
-            productList.remove();
-            System.out.println("Product removed from order.");
+    // Cancels this order if it is still pending
+    public void cancelOrder() {
+        if (status.equalsIgnoreCase("Pending")) {           // Check if status is still pending
+            status = "Canceled";                            // Update status to canceled
+            System.out.println("Order #" + orderId + " has been canceled.");
         } else {
-            System.out.println("Product not found in this order.");
+            System.out.println("Only pending orders can be canceled."); // Cannot cancel otherwise
         }
     }
 
     //----------------------------------------------------------------------------------//
-    // Calculate the total price of all products (in case updates happened)
+    // Updates the status of this order
+    public void updateStatus(String newStatus) {
+        this.status = newStatus;                            // Update the status value
+        System.out.println("Order #" + orderId + " status updated to: " + newStatus);
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Displays all products included in this order
+    public void displayOrderProducts() {
+        if (productsList.empty()) {                         // Check if no products exist in the order
+            System.out.println("No products in this order.");
+            return;                                          // Exit method
+        }
+
+        System.out.println("Products in Order #" + orderId + ":");
+        productsList.findFirst();                            // Start at first product
+
+        while (!productsList.last()) {                       // Traverse until last node
+            System.out.println(productsList.retrieve());     // Print current product
+            productsList.findNext();                         // Move to next
+        }
+
+        System.out.println(productsList.retrieve());         // Print last product
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Calculates the total price manually if products were updated or removed
     public double calculateTotal() {
-        totalAmount = 0;                            // Reset total
-        if (productList.empty()) return totalAmount; // If no products, total stays 0
+        double sum = 0;                                     // Variable to store total
+        if (productsList.empty()) return 0;                 // Return 0 if no products
+        productsList.findFirst();                           // Start from first node
 
-        productList.findFirst();                    // Move to first product
-        while (!productList.last()) {               // Go through all products
-            totalAmount += productList.retrieve().getPrice();  // Add up each price
-            productList.findNext();
+        while (!productsList.last()) {                      // Traverse all except last
+            sum += productsList.retrieve().getPrice();      // Add product price
+            productsList.findNext();                        // Move to next
         }
-        totalAmount += productList.retrieve().getPrice();      // Add the last one
-        return totalAmount;                         // Return total
+
+        sum += productsList.retrieve().getPrice();          // Add last product's price
+        totalPrice = sum;                                   // Update totalPrice
+        return totalPrice;                                  // Return calculated total
     }
 
     //----------------------------------------------------------------------------------//
-    // ⭐ Added: Get the product list to access from Inventory or Customer
-    public LinkedList<Products> getProductList() {
-        return productList;                         // Return reference to product list
+    // ⭐ Added/Changed: Method to attach this order to its customer's order list
+    public void registerOrderToCustomer() {
+        customer.getOrdersList().insert(this);              // Insert this order into customer’s linked list
     }
 
     //----------------------------------------------------------------------------------//
-    // Returns string representation of the order
+    // Returns formatted string of this order’s details
     public String toString() {
-        return "Order ID: " + orderId +
-               " | Date: " + orderDate +
-               " | Total: " + calculateTotal() + "\n" + // ⭐ Added/Changed: use method for accuracy
-               "Products:\n" + productList.toString();
+        return "Order ID = " + orderId +
+               " || Customer ID = " + customer.getCustomerId() +
+               " || Total Price = " + totalPrice +
+               " || Date = " + orderDate +
+               " || Status = " + status + "\n";
     }
 
     //----------------------------------------------------------------------------------//
     //--- Getters and Setters ---//
 
     public int getOrderId() {
-        return orderId;                             // Return order ID
+        return orderId;                                     // Return order ID
     }
 
     public void setOrderId(int orderId) {
-        this.orderId = orderId;                     // Update order ID
+        this.orderId = orderId;                             // Update order ID
+    }
+
+    public Customers getCustomer() {
+        return customer;                                    // Return customer reference
+    }
+
+    public void setCustomer(Customers customer) {
+        this.customer = customer;                           // Update customer reference
+    }
+
+    public LinkedList<Products> getProductsList() {
+        return productsList;                                // Return list of products
+    }
+
+    public void setProductsList(LinkedList<Products> productsList) {
+        this.productsList = productsList;                   // Replace the entire product list
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;                                  // Return total price
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;                       // Update total price
     }
 
     public String getOrderDate() {
-        return orderDate;                           // Return order date
+        return orderDate;                                   // Return order date
     }
 
     public void setOrderDate(String orderDate) {
-        this.orderDate = orderDate;                 // Update order date
+        this.orderDate = orderDate;                         // Update order date
     }
 
-    public double getTotalAmount() {
-        return totalAmount;                         // Return current total
+    public String getStatus() {
+        return status;                                      // Return current status
     }
 
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;             // Update total (manually if needed)
+    public void setStatus(String status) {
+        this.status = status;                               // Update current status
     }
 }
