@@ -1,143 +1,225 @@
 package project212;
 
-// The Products class represents an individual product available in the system.
+// The Products class represents an individual product in the system.
 public class Products {
 
     //--- Attributes ---//
-    private int productId;                         // Unique ID of this product
-    private String name;                            // Product name (e.g., "Laptop")
-    private double price;                           // Price of the product
-    private int stock;                              // How many units are available in inventory
-    private LinkedList<Reviews> reviewsList;        // ⭐ Added/Changed: Each product has its own list of reviews
+    private LinkedList<Reviews> reviewsList;  // Each product keeps a list of reviews left by customers
+    private int productId;                    // Unique product ID
+    private String name;                      // Product name
+    private double price;                     // Product price
+    private int stock;                        // Quantity of product available in stock
 
     //----------------------------------------------------------------------------------//
-    // Constructor: creates a new product with given details
+    // Constructor: initializes a new product with its details
     public Products(int productId, String name, double price, int stock) {
-        this.productId = productId;             // Assign product ID
-        this.name = name;                       // Assign product name
-        this.price = price;                     // Assign price
-        this.stock = stock;                     // Assign stock quantity
-        this.reviewsList = new LinkedList<>();  // ⭐ Added/Changed: Initialize empty linked list for reviews
+        this.productId = productId;           // Assign product ID
+        this.name = name;                     // Assign name
+        this.price = price;                   // Assign price
+        this.stock = stock;                   // Assign available quantity
+        this.reviewsList = new LinkedList<>(); // ⭐ Create empty list of reviews for this product
     }
 
     //----------------------------------------------------------------------------------//
-    // Reduces stock when an order includes this product
-    public boolean reduceStock(int quantity) {
-        if (quantity <= 0) return false;               // Prevent negative or zero quantity
-        if (stock >= quantity) {                       // If enough stock is available
-            stock -= quantity;                         // Decrease the stock
-            return true;                               // Return success
-        } else {
-            System.out.println("Insufficient stock for " + name); // Notify insufficient stock
-            return false;                              // Return failure
+    // Adds a product to the list if it doesn’t already exist
+    public void addProducts(LinkedList<Products> products, Products product) {
+        // Search for product with same ID before adding
+        Products searchedProduct = searchById(products, product.getProductId());
+
+        if (searchedProduct != null) {        // If product already exists
+            System.out.println("Product already exists."); 
+            return;
         }
+
+        // Insert the new product into the products list
+        products.insert(product);
+        System.out.println("Product added successfully.");
     }
 
     //----------------------------------------------------------------------------------//
-    // Increases stock when new inventory arrives
-    public void addStock(int quantity) {
-        if (quantity > 0) {                            // Ensure positive number
-            stock += quantity;                         // Increase the stock count
-            System.out.println(quantity + " units added to " + name);
+    // Removes a product from the list based on ID
+    public void removeProduct(LinkedList<Products> products, int productId) {
+        if (products.empty()) {               // If product list is empty
+            System.out.println("No products found.");
+            return;
         }
+
+        // Start from first product in the list
+        products.findFirst();
+        while (!products.last()) {            // Loop until second last element
+            if (products.retrieve().getProductId() == productId) {
+                products.remove();            // Remove product if found
+                System.out.println("Product removed successfully.");
+                return;
+            }
+            products.findNext();              // Move to next product
+        }
+
+        // Check last element
+        if (products.retrieve().getProductId() == productId) {
+            products.remove();
+            System.out.println("Product removed successfully.");
+            return;
+        }
+
+        // If product not found at all
+        System.out.println("Product not found.");
     }
 
     //----------------------------------------------------------------------------------//
-    // Adds a new review to this product
+    // Updates product price and stock by searching its ID
+    public void updateProducts(LinkedList<Products> products, int productId, double price, int stock) {
+        // Look for the product first
+        Products product = searchById(products, productId);
+
+        if (product == null) {                // If not found, show error
+            System.out.println("No product found with that ID.");
+            return;
+        }
+
+        // Update fields
+        product.setPrice(price);
+        product.setStock(stock);
+        System.out.println("Product updated successfully.");
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Searches a product by its ID in a given products list
+    public Products searchById(LinkedList<Products> products, int productId) {
+        if (products.empty())                 // If list is empty, return null
+            return null;
+
+        products.findFirst();                 // Start from first product
+
+        // Traverse list until last element
+        while (!products.last()) {
+            if (products.retrieve().getProductId() == productId)
+                return products.retrieve();   // Found product, return it
+            products.findNext();
+        }
+
+        // Check last element
+        if (products.retrieve().getProductId() == productId)
+            return products.retrieve();
+
+        return null;                          // No product found
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Searches for all products that contain a name substring (case-insensitive)
+    public LinkedList<Products> searchByName(LinkedList<Products> products, String name) {
+        LinkedList<Products> display = new LinkedList<>(); // To store matching products
+
+        if (products.empty())                 // If product list is empty, return empty list
+            return display;
+
+        products.findFirst();
+        while (!products.last()) {
+            if (products.retrieve().getName().toLowerCase().contains(name.toLowerCase()))
+                display.insert(products.retrieve()); // Add match
+            products.findNext();
+        }
+
+        // Check last product
+        if (products.retrieve().getName().toLowerCase().contains(name.toLowerCase()))
+            display.insert(products.retrieve());
+
+        return display;                       // Return list of matches
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Finds all products that are out of stock (stock == 0)
+    public LinkedList<Products> trackOutOfStock(LinkedList<Products> products) {
+        LinkedList<Products> outOfStock = new LinkedList<>(); // To store out-of-stock items
+
+        if (products.empty())
+            return outOfStock;
+
+        products.findFirst();
+        while (!products.last()) {
+            if (products.retrieve().getStock() == 0)
+                outOfStock.insert(products.retrieve()); // Add product if out of stock
+            products.findNext();
+        }
+
+        // Check last product
+        if (products.retrieve().getStock() == 0)
+            outOfStock.insert(products.retrieve());
+
+        return outOfStock;
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Adds a review to this product’s review list
     public void addReview(Reviews review) {
-        reviewsList.insert(review);                    // ⭐ Added/Changed: Insert review into linked list
-        System.out.println("Review added for product: " + name);
+        if (reviewsList.empty()) {            // If no reviews yet, just insert
+            reviewsList.insert(review);
+            return;
+        }
+
+        reviewsList.findFirst();
+        while (!reviewsList.last()) {         // Check if the same review already exists
+            if (reviewsList.retrieve().getReviewId() == review.getReviewId())
+                return;                       // Do not add duplicate
+            reviewsList.findNext();
+        }
+
+        // Check last review
+        if (reviewsList.retrieve().getReviewId() == review.getReviewId())
+            return;
+
+        reviewsList.insert(review);           // Insert new review
     }
 
     //----------------------------------------------------------------------------------//
-    // Displays all reviews for this product
-    public void displayReviews() {
-        if (reviewsList.empty()) {                     // Check if list is empty
-            System.out.println("No reviews yet for " + name);
-            return;                                    // Exit if none
-        }
-
-        System.out.println("Reviews for " + name + ":"); // Print header
-        reviewsList.findFirst();                       // Move to first review
-
-        while (!reviewsList.last()) {                  // Traverse until last review
-            System.out.println(reviewsList.retrieve()); // Print each review
-            reviewsList.findNext();                    // Move to next
-        }
-
-        System.out.println(reviewsList.retrieve());    // Print last review
-    }
-
-    //----------------------------------------------------------------------------------//
-    // ⭐ Added/Changed: Calculates the average rating for this product
-    public double getAverageRating() {
-        if (reviewsList.empty()) return 0;             // Return 0 if no reviews
-        double total = 0;                              // To store sum of ratings
-        int count = 0;                                 // Count number of reviews
-
-        reviewsList.findFirst();                       // Start from first review
-        while (!reviewsList.last()) {                  // Traverse list
-            total += reviewsList.retrieve().getRating(); // Add rating
-            count++;                                   // Increment count
-            reviewsList.findNext();                    // Move next
-        }
-
-        total += reviewsList.retrieve().getRating();   // Add last review rating
-        count++;                                       // Count last review
-
-        return total / count;                          // Return average rating
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Converts product details into a readable string format
+    // Returns a clean string representation of the product
     public String toString() {
         return "Product ID = " + productId +
                " || Name = " + name +
                " || Price = " + price +
-               " || Stock = " + stock +
-               " || Avg. Rating = " + String.format("%.2f", getAverageRating()) + "\n";
+               " || Stock = " + stock;
     }
 
     //----------------------------------------------------------------------------------//
     //--- Getters and Setters ---//
 
-    public int getProductId() {
-        return productId;                              // Return product ID
-    }
-
-    public void setProductId(int productId) {
-        this.productId = productId;                    // Update product ID
-    }
-
-    public String getName() {
-        return name;                                   // Return product name
-    }
-
-    public void setName(String name) {
-        this.name = name;                              // Update product name
-    }
-
-    public double getPrice() {
-        return price;                                  // Return price
-    }
-
-    public void setPrice(double price) {
-        this.price = price;                            // Update price
-    }
-
-    public int getStock() {
-        return stock;                                  // Return stock quantity
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;                            // Update stock quantity
-    }
-
     public LinkedList<Reviews> getReviewsList() {
-        return reviewsList;                            // ⭐ Added/Changed: Return linked list of reviews
+        return reviewsList;                   // Return list of product reviews
     }
 
     public void setReviewsList(LinkedList<Reviews> reviewsList) {
-        this.reviewsList = reviewsList;                // ⭐ Added/Changed: Replace review list
+        this.reviewsList = reviewsList;       // Replace existing review list
+    }
+
+    public int getProductId() {
+        return productId;                     // Return product ID
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;           // Set new product ID
+    }
+
+    public String getName() {
+        return name;                          // Return product name
+    }
+
+    public void setName(String name) {
+        this.name = name;                     // Set new name
+    }
+
+    public double getPrice() {
+        return price;                         // Return price
+    }
+
+    public void setPrice(double price) {
+        this.price = price;                   // Update product price
+    }
+
+    public int getStock() {
+        return stock;                         // Return stock
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;                   // Update stock quantity
     }
 }
