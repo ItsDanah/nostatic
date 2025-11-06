@@ -1,9 +1,10 @@
 package project212;
 
+// Represents a product in the e-commerce system
 public class Products {
 
-    // Each product maintains its own list of reviews
-    private LinkedList<Reviews> reviewsList; // ⭐ Added explanation: list belongs to one product only
+    // Each product has its own list of reviews
+    private LinkedList<Reviews> reviewsList;
 
     // Basic product attributes
     private int productId;
@@ -11,230 +12,76 @@ public class Products {
     private double price;
     private int stock;
 
-    // --- Constructor ---
+    //----------------------------------------------------------------------------------//
+    // Constructor
     public Products(int productId, String name, double price, int stock) {
-        this.productId = productId; // Set unique product ID
-        this.name = name;           // Set product name
-        this.price = price;         // Set initial price
-        this.stock = stock;         // Set initial stock quantity
-        this.reviewsList = new LinkedList<>(); // ⭐ Changed: always initialize review list here
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Add a new product to a given list of products
-    public void addProducts(LinkedList<Products> products, Products product) {
-
-        // Check if product already exists by ID
-        Products searchedProduct = searchById(products, product.getProductId());
-        if (searchedProduct != null) {
-            System.out.println("Product already exists.");
-            return;
-        }
-
-        // Insert product into the linked list
-        products.insert(product);
-        System.out.println("Product added successfully.");
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Remove a product from the list using its ID
-    public void removeProduct(LinkedList<Products> products, int productId) {
-
-        // If product list is empty
-        if (products.empty()) {
-            System.out.println("No products found.");
-            return;
-        }
-
-        // Move pointer to the first product
-        products.findFirst();
-
-        // Traverse list until last node
-        while (!products.last()) {
-            if (products.retrieve().getProductId() == productId) {
-                products.remove(); // Remove current product
-                System.out.println("Product removed successfully.");
-                return;
-            }
-            products.findNext(); // Move to next product
-        }
-
-        // Check last node in the list
-        if (products.retrieve().getProductId() == productId) {
-            products.remove();
-            System.out.println("Product removed successfully.");
-        } else {
-            System.out.println("Product not found.");
-        }
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Update product price and stock by ID
-    public void updateProducts(LinkedList<Products> products, int productId, double price, int stock) {
-
-        // Search for product in list
-        Products product = searchById(products, productId);
-        if (product == null) {
-            System.out.println("No product found with that ID.");
-            return;
-        }
-
-        // Update attributes
-        product.setPrice(price);
-        product.setStock(stock);
-        System.out.println("Product updated successfully.");
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Search product by ID and return a reference to it
-    public Products searchById(LinkedList<Products> products, int productId) {
-
-        // Return null if list empty
-        if (products.empty())
-            return null;
-
-        // Start from first node
-        products.findFirst();
-
-        // Traverse until the last node
-        while (!products.last()) {
-            if (products.retrieve().getProductId() == productId)
-                return products.retrieve(); // Found match, return product
-            products.findNext();
-        }
-
-        // Check last node
-        if (products.retrieve().getProductId() == productId)
-            return products.retrieve();
-
-        // Product not found
-        return null;
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Search for product by name (case insensitive)
-    public LinkedList<Products> searchByName(LinkedList<Products> products, String name) {
-
-        // Create a list to hold matching products
-        LinkedList<Products> display = new LinkedList<>();
-
-        // If list is empty, return empty list
-        if (products.empty())
-            return display;
-
-        // Start search from first product
-        products.findFirst();
-        while (!products.last()) {
-            // Compare ignoring case and allow partial match
-            if (products.retrieve().getName().toLowerCase().contains(name.toLowerCase()))
-                display.insert(products.retrieve());
-            products.findNext();
-        }
-
-        // Check last node
-        if (products.retrieve().getName().toLowerCase().contains(name.toLowerCase()))
-            display.insert(products.retrieve());
-
-        return display; // Return list of matched products
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Find all products that are out of stock
-    public LinkedList<Products> trackOutOfStock(LinkedList<Products> products) {
-
-        // List to store out-of-stock products
-        LinkedList<Products> outOfStock = new LinkedList<>();
-
-        // If list empty, return empty list
-        if (products.empty())
-            return outOfStock;
-
-        // Traverse list to find stock == 0
-        products.findFirst();
-        while (!products.last()) {
-            if (products.retrieve().getStock() == 0)
-                outOfStock.insert(products.retrieve());
-            products.findNext();
-        }
-
-        // Check last node
-        if (products.retrieve().getStock() == 0)
-            outOfStock.insert(products.retrieve());
-
-        return outOfStock;
+        this.productId = productId;
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+        this.reviewsList = new LinkedList<>(); // Initialize review list
     }
 
     //----------------------------------------------------------------------------------//
     // Add a review to this product
     public void addReview(Reviews review) {
-
-        // Avoid duplicate reviews
         if (!reviewsList.empty()) {
             reviewsList.findFirst();
             while (!reviewsList.last()) {
-                if (reviewsList.retrieve().getReviewId() == review.getReviewId())
-                    return; // Duplicate found, stop
+                if (reviewsList.retrieve().getReviewId() == review.getReviewId()) return;
                 reviewsList.findNext();
             }
-
-            // Check last node
-            if (reviewsList.retrieve().getReviewId() == review.getReviewId())
-                return;
+            if (reviewsList.retrieve().getReviewId() == review.getReviewId()) return;
         }
-
-        // Insert new review
         reviewsList.insert(review);
-        System.out.println("Review added successfully."); // ⭐ Added success message
+        System.out.println("✅ Review added to product successfully.");
     }
 
     //----------------------------------------------------------------------------------//
-    // Return string representation of the product
+    // Display all reviews for this product
+    public void displayReviews() {
+        if (reviewsList.empty()) {
+            System.out.println("No reviews for product " + name + ".");
+            return;
+        }
+        System.out.println("Reviews for " + name + ":");
+        reviewsList.findFirst();
+        while (!reviewsList.last()) {
+            System.out.println(reviewsList.retrieve().toString());
+            reviewsList.findNext();
+        }
+        System.out.println(reviewsList.retrieve().toString());
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Search product by ID
+    public boolean hasId(int id) {
+        return this.productId == id;
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Return product details as string
     public String toString() {
         return "Product ID = " + productId +
-                " || Name = " + name +
-                " || Price = " + price +
-                " || Stock = " + stock + "\n";
+               " || Name = " + name +
+               " || Price = " + price +
+               " || Stock = " + stock;
     }
 
     //----------------------------------------------------------------------------------//
-    // --- Getters and Setters ---
-    public LinkedList<Reviews> getReviewsList() {
-        return reviewsList;
-    }
+    //--- Getters and Setters ---//
+    public int getProductId() { return productId; }
+    public void setProductId(int productId) { this.productId = productId; }
 
-    public void setReviewsList(LinkedList<Reviews> reviewsList) {
-        this.reviewsList = reviewsList;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public int getProductId() {
-        return productId;
-    }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
 
-    public void setProductId(int productId) {
-        this.productId = productId;
-    }
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
+    public LinkedList<Reviews> getReviewsList() { return reviewsList; }
+    public void setReviewsList(LinkedList<Reviews> reviewsList) { this.reviewsList = reviewsList; }
 }
