@@ -1,183 +1,121 @@
 package project212;
 
+// Represents a customer order
 public class Orders {
 
-    // Each order will contain a list of products that belong to it
-    private LinkedList<Products> productsList; // ⭐ Added comment explaining ownership
+    // Each order contains a list of products
+    private LinkedList<Products> productsList;
 
-    // Order details
+    // Order attributes
     private int orderId;
-    private Customers customer; // Reference to the customer who owns this order
+    private Customers customer;
     private double totalPrice;
     private String orderDate;
-    private String status;
+    private String status; // e.g., Pending, Shipped, Delivered
 
-    // --- Constructor ---
+    //----------------------------------------------------------------------------------//
+    // Constructor
     public Orders(int orderId, Customers customer, double totalPrice, String orderDate, String status) {
-        this.orderId = orderId;         // Set unique order ID
-        this.customer = customer;       // Store reference to the customer
-        this.totalPrice = totalPrice;   // Initialize total price
-        this.orderDate = orderDate;     // Store date of order creation
-        this.status = status;           // Store current status ("Pending", "Shipped", etc.)
-        this.productsList = new LinkedList<>(); // Initialize product list for this order ⭐ Changed
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Create and add an order to a customer's order list
-    public void createOrder(Orders order) {
-        // Check if this customer already has an order with the same ID
-        if (searchById(order.getOrderId()) != null) {
-            System.out.println("Order already exists.");
-            return;
-        }
-
-        // Add order to customer's orders list
-        customer.placeOrder(order); // ⭐ Changed: relies on customer's internal orderList
-        System.out.println("Order created successfully.");
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Cancel an existing order (only if it's still pending)
-    public void cancelOrder(int orderId) {
-
-        // Search for order by ID in this customer's order list
-        Orders canceledOrder = searchById(orderId);
-
-        // If no order found, display error
-        if (canceledOrder == null) {
-            System.out.println("No order found with this ID.");
-            return;
-        }
-
-        // If order is not pending, cannot cancel
-        if (!canceledOrder.getStatus().equalsIgnoreCase("Pending")) {
-            System.out.println("You can't cancel an order after it has been shipped or delivered.");
-        } else {
-            canceledOrder.setStatus("Canceled");
-            System.out.println("Order canceled successfully.");
-        }
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Update the status of an existing order
-    public void updateStatus(int orderId, String status) {
-
-        // Find order by ID
-        Orders updatedOrder = searchById(orderId);
-
-        // If order does not exist
-        if (updatedOrder == null) {
-            System.out.println("No order found with this ID.");
-            return;
-        }
-
-        // Update order status
-        updatedOrder.setStatus(status);
-        System.out.println("Order status updated successfully.");
-    }
-
-    //----------------------------------------------------------------------------------//
-    // Search for an order by its ID in the current customer's order list
-    public Orders searchById(int orderId) {
-
-        // If customer's order list is empty, return null
-        if (customer.getOrdersList().empty())
-            return null;
-
-        // Start at the first order
-        customer.getOrdersList().findFirst();
-
-        // Traverse through list until last node
-        while (!customer.getOrdersList().last()) {
-            if (customer.getOrdersList().retrieve().getOrderId() == orderId)
-                return customer.getOrdersList().retrieve();
-            customer.getOrdersList().findNext();
-        }
-
-        // Check last node
-        if (customer.getOrdersList().retrieve().getOrderId() == orderId)
-            return customer.getOrdersList().retrieve();
-
-        // Order not found
-        return null;
+        this.orderId = orderId;
+        this.customer = customer;
+        this.totalPrice = totalPrice;
+        this.orderDate = orderDate;
+        this.status = status;
+        this.productsList = new LinkedList<>();
     }
 
     //----------------------------------------------------------------------------------//
     // Add a product to this order
     public void addProduct(Products product) {
-
-        // Prevent adding duplicate product IDs to same order
-        productsList.findFirst();
-        while (!productsList.empty() && !productsList.last()) {
+        if (!productsList.empty()) {
+            productsList.findFirst();
+            while (!productsList.last()) {
+                if (productsList.retrieve().getProductId() == product.getProductId()) {
+                    System.out.println("Product already exists in order.");
+                    return;
+                }
+                productsList.findNext();
+            }
             if (productsList.retrieve().getProductId() == product.getProductId()) {
                 System.out.println("Product already exists in order.");
+                return;
+            }
+        }
+        productsList.insert(product);
+        System.out.println("✅ Product added to order successfully.");
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Remove a product by ID
+    public void removeProduct(int productId) {
+        if (productsList.empty()) {
+            System.out.println("No products in order.");
+            return;
+        }
+
+        productsList.findFirst();
+        while (!productsList.last()) {
+            if (productsList.retrieve().getProductId() == productId) {
+                productsList.remove();
+                System.out.println("Product removed from order.");
                 return;
             }
             productsList.findNext();
         }
 
-        // Insert product into the linked list
-        productsList.insert(product);
-        System.out.println("Product added to order successfully."); // ⭐ Added confirmation message
+        if (productsList.retrieve().getProductId() == productId) {
+            productsList.remove();
+            System.out.println("Product removed from order.");
+            return;
+        }
+
+        System.out.println("Product not found in order.");
     }
 
     //----------------------------------------------------------------------------------//
-    // Display details of this order
+    // Display all products in this order
+    public void displayProducts() {
+        if (productsList.empty()) {
+            System.out.println("No products in this order.");
+            return;
+        }
+
+        System.out.println("Products in Order ID " + orderId + ":");
+        productsList.findFirst();
+        while (!productsList.last()) {
+            System.out.println(productsList.retrieve().toString());
+            productsList.findNext();
+        }
+        System.out.println(productsList.retrieve().toString());
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Getters and Setters
+    public LinkedList<Products> getProductsList() { return productsList; }
+    public void setProductsList(LinkedList<Products> productsList) { this.productsList = productsList; }
+
+    public int getOrderId() { return orderId; }
+    public void setOrderId(int orderId) { this.orderId = orderId; }
+
+    public Customers getCustomer() { return customer; }
+    public void setCustomer(Customers customer) { this.customer = customer; }
+
+    public double getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
+
+    public String getOrderDate() { return orderDate; }
+    public void setOrderDate(String orderDate) { this.orderDate = orderDate; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    //----------------------------------------------------------------------------------//
+    // Return order info
     public String toString() {
         return "Order ID = " + orderId +
-                " || Customer ID = " + customer.getCustomerId() +
-                " || Total Price = " + totalPrice +
-                " || Order Date = " + orderDate +
-                " || Status = " + status + "\n";
-    }
-
-    //----------------------------------------------------------------------------------//
-    // --- Getters and Setters ---
-    public LinkedList<Products> getProductsList() {
-        return productsList;
-    }
-
-    public void setProductsList(LinkedList<Products> productsList) {
-        this.productsList = productsList;
-    }
-
-    public int getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(int orderId) {
-        this.orderId = orderId;
-    }
-
-    public Customers getCustomer() {
-        return customer;
-    }
-
-    public void setCustomer(Customers customer) {
-        this.customer = customer;
-    }
-
-    public double getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(double totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public String getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(String orderDate) {
-        this.orderDate = orderDate;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
+               " || Customer ID = " + customer.getCustomerId() +
+               " || Total Price = " + totalPrice +
+               " || Order Date = " + orderDate +
+               " || Status = " + status;
     }
 }
