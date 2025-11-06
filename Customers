@@ -1,189 +1,69 @@
 package project212;
 
+// The Customers class stores information about a single customer
+// Each customer has their own list of orders.
 public class Customers {
-	
-	private LinkedList<Orders> ordersList;
-	private int customerId;
-	private String name;
-	private String email;
 
+    //--- Attributes ---//
+    private int customerId;          // Unique ID for this customer
+    private String name;             // Customer's name
+    private String email;            // Customer's email address
+    private LinkedList<Orders> ordersList;  // List of all orders placed by this customer
 
-	public Customers(int customerId, String name, String email) {
-		this.customerId = customerId;
-		this.name = name;
-		this.email = email;
-		ordersList = new LinkedList<> ();
-	}
+    //----------------------------------------------------------------------------------//
+    // Constructor: initializes customer information and creates an empty order list
+    public Customers(int customerId, String name, String email) {
+        this.customerId = customerId;   // Set the customer's unique ID
+        this.name = name;               // Set the customer's name
+        this.email = email;             // Set the customer's email
+        this.ordersList = new LinkedList<>();  // Create a new empty linked list of orders
+    }
 
-	//----------------------------------------------------------------------------------//
+    //----------------------------------------------------------------------------------//
+    // ⭐ Added: Getter to access the customer's order list (used by Inventory)
+    public LinkedList<Orders> getOrdersList() {
+        return ordersList;  // Return this customer's list of orders
+    }
 
-	public LinkedList<Customers> registerCustomer( LinkedList<Customers> customers , Customers customer ) { // done
-		if ( searchById(customers, customer.getCustomerId()) != null ) {
-			System.out.println("Customer already exists in the system");
-			return customers;
-		}
+    //----------------------------------------------------------------------------------//
+    // Adds a new order to the customer's order list
+    public boolean addOrder(Orders order) {
+        ordersList.insert(order); // Insert the order into the customer's linked list
+        return true; // Always returns true for now (could add duplicate checking later)
+    }
 
-		customers.insert(customer);	
-		return customers;
-	}
+    //----------------------------------------------------------------------------------//
+    // Returns customer info as a formatted string
+    public String toString() {
+        return "Customer ID: " + customerId + 
+               " | Name: " + name + 
+               " | Email: " + email;
+    }
 
-	//----------------------------------------------------------------------------------//
+    //----------------------------------------------------------------------------------//
+    //--- Getters and Setters ---//
 
-	public void placeOrder(Orders order) {
-		ordersList.insert(order);
-	}
+    public int getCustomerId() {
+        return customerId;  // Return the customer ID
+    }
 
-	//----------------------------------------------------------------------------------//
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;  // Update the customer ID
+    }
 
-	public void viewOrderHistory() {
+    public String getName() {
+        return name;  // Return the customer's name
+    }
 
-		System.out.println("Orders History:\n");
+    public void setName(String name) {
+        this.name = name;  // Update the customer's name
+    }
 
-		if (ordersList.empty()) {
-			System.out.println("No orders found.");
-			return;
-		}
+    public String getEmail() {
+        return email;  // Return the customer's email
+    }
 
-		ordersList.findFirst();
-		while (!ordersList.last()) {
-			System.out.println(ordersList.retrieve().toString());
-			ordersList.findNext();
-		}
-		System.out.println(ordersList.retrieve().toString());
-
-	}
-
-	//----------------------------------------------------------------------------------//
-	
-
-	public LinkedList<Orders> getOrdersBetweenDates(String date1, String date2 ){
-		LinkedList<Orders> ordersBetweenDates = new LinkedList<>();
-
-		if (ordersList.empty())
-			return ordersBetweenDates;
-
-		String firstDate[] = date1.split("-");
-		String secondDate[] = date2.split("-");
-
-		String tmp1 = firstDate[0] + firstDate[1] + firstDate[2];
-		int d1= Integer.parseInt(tmp1);
-
-		String tmp2 = secondDate[0] + secondDate[1] + secondDate[2];
-		int d2= Integer.parseInt(tmp2);
-
-		ordersList.findFirst();
-		while (true) {
-
-			String date = ordersList.retrieve().getOrderDate();
-			String comparingDate[] = date.split("-");
-			String tmp3 = comparingDate[0] + comparingDate[1] + comparingDate[2];
-			int d= Integer.parseInt(tmp3);
-
-			if ( d1>d &&  d<d2 )
-				ordersBetweenDates.insert(ordersList.retrieve());
-
-			if (ordersList.last())
-				break;
-
-			ordersList.findNext();
-		}
-
-		return ordersBetweenDates;
-	}
-
-	/*public void addReview (int productId, int ratingScore, String textComment) {
-		// possible error
-
-		if (ordersList.empty()) {
-			System.out.println("No orders found");
-			return;
-		}
-
-		boolean available=false;
-
-		while (!ordersList.last())
-			if (ordersList.retrieve().getProductId() == productId) {
-				available=true; 
-				break;
-			}
-
-
-		if (available) {
-
-			//reviewId
-			while(!(Reviews.getReviews().last())) {
-				Reviews.getReviews().findNext();
-			}
-			int reviewId = Reviews.getReviews().retrieve().getReviewId();
-			reviewId++;
-
-			//adding review 
-			Reviews review = new Reviews(reviewId, productId, customerId, ratingScore, textComment);
-			Reviews.addReview(review);
-			System.out.println("Review added successfully.");
-		}
-		else {
-			System.out.println("You can only review products you've ordered");
-		}
-
-
-
-	}*/
-
-	//----------------------------------------------------------------------------------//
-
-	public Customers searchById(LinkedList<Customers> customers, int customerId) {
-
-		if (customers.empty())
-			return null;
-		customers.findFirst();
-		while(!(customers.last())) {
-			if (customers.retrieve().getCustomerId() == customerId)
-				return customers.retrieve();
-			customers.findNext();
-		}
-		if (customers.retrieve().getCustomerId() == customerId)
-			return customers.retrieve();
-
-		return null;
-	}
-
-	public String toString() {
-		return "customer ID = " + customerId + " || name = " + name + " || email = " + email +"\n";
-	}
-
-	public LinkedList<Orders> getOrdersList() {
-		return ordersList;
-	}
-
-	public void setOrdersList(LinkedList<Orders> ordersList) {
-		this.ordersList = ordersList;
-	}
-
-	public int getCustomerId() {
-		return customerId;
-	}
-
-	public void setCustomerId(int customerId) {
-		this.customerId = customerId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-
-
+    public void setEmail(String email) {
+        this.email = email;  // Update the customer's email
+    }
 }
