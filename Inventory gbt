@@ -2,304 +2,298 @@ package project212;
 
 import java.util.Scanner;
 
+// Main system class for inventory management
 public class Inventory {
 
-    // The inventory holds all customers in the system
+    // List of all customers in the system
     private LinkedList<Customers> customersList;
 
-    // Constructor initializes the customer list
+    // Constructor
     public Inventory() {
-        customersList = new LinkedList<>(); // Create an empty customer list
+        customersList = new LinkedList<>();
     }
 
     //----------------------------------------------------------------------------------//
-    // --- Main method to start the system ---
+    // Main method to run the system
     public static void main(String[] args) {
 
-        // Create an instance of Inventory (main system object)
         Inventory system = new Inventory();
-
-        // Create a Scanner object for user input
         Scanner input = new Scanner(System.in);
+        int choice = -1;
 
-        // Variable for looping the menu
-        int choice = 0;
-
-        // Menu loop continues until user exits
         do {
-            // Display main menu
             System.out.println("\n===== INVENTORY MANAGEMENT SYSTEM =====");
             System.out.println("1. Add Customer");
             System.out.println("2. View All Customers");
             System.out.println("3. Add Product to Customer Order");
             System.out.println("4. View Customer Orders");
-            System.out.println("5. Add Review for a Product");
+            System.out.println("5. Add Review to Product");
             System.out.println("6. View Product Reviews");
             System.out.println("0. Exit");
             System.out.print("Enter choice: ");
-
-            // Get user choice
             choice = input.nextInt();
-            input.nextLine(); // consume leftover newline
+            input.nextLine(); // consume newline
 
             switch (choice) {
-                case 1:
-                    system.addCustomer(input); // call method to add customer
-                    break;
-                case 2:
-                    system.viewCustomers(); // display all customers
-                    break;
-                case 3:
-                    system.addProductToOrder(input); // link a product to customer's order
-                    break;
-                case 4:
-                    system.viewCustomerOrders(input); // view customer's orders
-                    break;
-                case 5:
-                    system.addReview(input); // add review to a product
-                    break;
-                case 6:
-                    system.viewProductReviews(input); // view all reviews for a product
-                    break;
-                case 0:
-                    System.out.println("Exiting system...");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Try again!");
+                case 1 -> system.addCustomer(input);
+                case 2 -> system.viewAllCustomers();
+                case 3 -> system.addProductToOrder(input);
+                case 4 -> system.viewCustomerOrders(input);
+                case 5 -> system.addReview(input);
+                case 6 -> system.viewProductReviews(input);
+                case 0 -> System.out.println("Exiting system...");
+                default -> System.out.println("Invalid choice, try again!");
             }
 
         } while (choice != 0);
 
-        input.close(); // Close Scanner when done
+        input.close();
     }
 
     //----------------------------------------------------------------------------------//
-    // --- Add new customer ---
+    // Add a new customer
     private void addCustomer(Scanner input) {
         System.out.print("Enter Customer ID: ");
         int id = input.nextInt();
         input.nextLine();
 
-        System.out.print("Enter Customer Name: ");
+        System.out.print("Enter Name: ");
         String name = input.nextLine();
 
-        System.out.print("Enter Customer Email: ");
+        System.out.print("Enter Email: ");
         String email = input.nextLine();
 
-        // Create customer object
-        Customers newCustomer = new Customers(id, name, email);
+        System.out.print("Enter Phone: ");
+        String phone = input.nextLine();
 
-        // Add to customers list
+        Customers newCustomer = new Customers(id, name, email, phone);
+
+        // Check duplicates
+        if (findCustomerById(id) != null) {
+            System.out.println("❌ Customer already exists.");
+            return;
+        }
+
         customersList.insert(newCustomer);
-
         System.out.println("✅ Customer added successfully!");
     }
 
     //----------------------------------------------------------------------------------//
-    // --- View all customers ---
-    private void viewCustomers() {
+    // View all customers
+    private void viewAllCustomers() {
         if (customersList.empty()) {
             System.out.println("⚠ No customers found.");
             return;
         }
-
         System.out.println("\n--- Customer List ---");
-        System.out.println(customersList.toString()); // uses LinkedList’s toString()
+        System.out.println(customersList.toString());
     }
 
     //----------------------------------------------------------------------------------//
-    // --- Add a product to a customer's order ---
+    // Add a product to a customer's order
     private void addProductToOrder(Scanner input) {
-        if (customersList.empty()) {
-            System.out.println("⚠ No customers available.");
-            return;
-        }
 
         System.out.print("Enter Customer ID: ");
-        int id = input.nextInt();
+        int custId = input.nextInt();
         input.nextLine();
 
-        // Find the customer by ID
-        customersList.findFirst();
-        Customers customerFound = null;
-        while (!customersList.last()) {
-            if (customersList.retrieve().getCustomerId() == id) {
-                customerFound = customersList.retrieve();
-                break;
-            }
-            customersList.findNext();
-        }
-        if (customerFound == null && customersList.retrieve().getCustomerId() == id)
-            customerFound = customersList.retrieve();
-
-        if (customerFound == null) {
+        Customers customer = findCustomerById(custId);
+        if (customer == null) {
             System.out.println("❌ Customer not found.");
             return;
         }
 
-        // Create new product details
+        System.out.print("Enter Order ID: ");
+        int orderId = input.nextInt();
+        input.nextLine();
+
+        System.out.print("Enter Order Date: ");
+        String orderDate = input.nextLine();
+
+        System.out.print("Enter Order Status (Pending/Shipped): ");
+        String status = input.nextLine();
+
+        System.out.print("Enter Total Price: ");
+        double totalPrice = input.nextDouble();
+        input.nextLine();
+
+        Orders order = new Orders(orderId, customer, totalPrice, orderDate, status);
+
         System.out.print("Enter Product ID: ");
         int productId = input.nextInt();
         input.nextLine();
 
         System.out.print("Enter Product Name: ");
-        String name = input.nextLine();
+        String productName = input.nextLine();
 
         System.out.print("Enter Product Price: ");
-        double price = input.nextDouble();
+        double productPrice = input.nextDouble();
 
         System.out.print("Enter Product Stock: ");
         int stock = input.nextInt();
         input.nextLine();
 
-        // Create product and order objects
-        Products newProduct = new Products(productId, name, price, stock);
-        Orders newOrder = new Orders(productId, newProduct); // simplified link via ID
+        Products product = new Products(productId, productName, productPrice, stock);
+        order.addProduct(product);
 
-        // Add order to the customer's order list
-        customerFound.getOrdersList().insert(newOrder);
-
-        System.out.println("✅ Product added to customer's order!");
+        customer.addOrder(order);
+        System.out.println("✅ Product added to customer's order successfully!");
     }
 
     //----------------------------------------------------------------------------------//
-    // --- View orders of a customer ---
+    // View all orders of a customer
     private void viewCustomerOrders(Scanner input) {
-        if (customersList.empty()) {
-            System.out.println("⚠ No customers found.");
-            return;
-        }
-
-        System.out.print("Enter Customer ID: ");
-        int id = input.nextInt();
-
-        // Find the customer
-        customersList.findFirst();
-        Customers customerFound = null;
-        while (!customersList.last()) {
-            if (customersList.retrieve().getCustomerId() == id) {
-                customerFound = customersList.retrieve();
-                break;
-            }
-            customersList.findNext();
-        }
-        if (customerFound == null && customersList.retrieve().getCustomerId() == id)
-            customerFound = customersList.retrieve();
-
-        if (customerFound == null) {
-            System.out.println("❌ Customer not found.");
-            return;
-        }
-
-        // Display customer’s orders
-        System.out.println("\n--- Orders for " + customerFound.getCustomerName() + " ---");
-        System.out.println(customerFound.getOrdersList().toString());
-    }
-
-    //----------------------------------------------------------------------------------//
-    // --- Add a review for a product ---
-    private void addReview(Scanner input) {
         System.out.print("Enter Customer ID: ");
         int custId = input.nextInt();
         input.nextLine();
 
-        Customers foundCustomer = findCustomerById(custId);
-        if (foundCustomer == null) {
+        Customers customer = findCustomerById(custId);
+        if (customer == null) {
             System.out.println("❌ Customer not found.");
             return;
         }
 
-        // Ask which product to review
-        System.out.print("Enter Product ID: ");
-        int productId = input.nextInt();
+        customer.displayOrders();
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Add a review to a product
+    private void addReview(Scanner input) {
+
+        System.out.print("Enter Customer ID: ");
+        int custId = input.nextInt();
         input.nextLine();
 
-        // Find product in all customer orders
-        Products targetProduct = null;
-        foundCustomer.getOrdersList().findFirst();
-        while (!foundCustomer.getOrdersList().last()) {
-            Orders o = foundCustomer.getOrdersList().retrieve();
-            if (o.getProduct().getProductId() == productId) {
-                targetProduct = o.getProduct();
-                break;
-            }
-            foundCustomer.getOrdersList().findNext();
-        }
-        if (targetProduct == null && foundCustomer.getOrdersList().retrieve().getProduct().getProductId() == productId)
-            targetProduct = foundCustomer.getOrdersList().retrieve().getProduct();
-
-        if (targetProduct == null) {
-            System.out.println("❌ Product not found in customer's orders.");
+        Customers customer = findCustomerById(custId);
+        if (customer == null) {
+            System.out.println("❌ Customer not found.");
             return;
         }
 
-        // Create a review for that product
+        System.out.print("Enter Order ID: ");
+        int orderId = input.nextInt();
+        input.nextLine();
+
+        Orders order = null;
+        customer.getOrderList().findFirst();
+        while (!customer.getOrderList().last()) {
+            if (customer.getOrderList().retrieve().getOrderId() == orderId) {
+                order = customer.getOrderList().retrieve();
+                break;
+            }
+            customer.getOrderList().findNext();
+        }
+        if (order == null && customer.getOrderList().retrieve().getOrderId() == orderId)
+            order = customer.getOrderList().retrieve();
+
+        if (order == null) {
+            System.out.println("❌ Order not found.");
+            return;
+        }
+
+        System.out.print("Enter Product ID to review: ");
+        int productId = input.nextInt();
+        input.nextLine();
+
+        Products product = null;
+        order.getProductsList().findFirst();
+        while (!order.getProductsList().last()) {
+            if (order.getProductsList().retrieve().getProductId() == productId) {
+                product = order.getProductsList().retrieve();
+                break;
+            }
+            order.getProductsList().findNext();
+        }
+        if (product == null && order.getProductsList().retrieve().getProductId() == productId)
+            product = order.getProductsList().retrieve();
+
+        if (product == null) {
+            System.out.println("❌ Product not found in this order.");
+            return;
+        }
+
         System.out.print("Enter Review ID: ");
         int reviewId = input.nextInt();
         input.nextLine();
 
         System.out.print("Enter Reviewer Name: ");
-        String reviewer = input.nextLine();
+        String reviewerName = input.nextLine();
 
-        System.out.print("Enter Rating (1–5): ");
+        System.out.print("Enter Rating (1-5): ");
         int rating = input.nextInt();
         input.nextLine();
 
         System.out.print("Enter Comment: ");
         String comment = input.nextLine();
 
-        // Create and add review
-        Reviews newReview = new Reviews(reviewId, reviewer, rating, comment, targetProduct);
-        newReview.addToProduct(); // automatically links review to product
+        Reviews review = new Reviews(reviewId, reviewerName, rating, comment, product);
+        product.addReview(review);
 
         System.out.println("✅ Review added successfully!");
     }
 
     //----------------------------------------------------------------------------------//
-    // --- View reviews of a product ---
+    // View reviews of a product
     private void viewProductReviews(Scanner input) {
         System.out.print("Enter Customer ID: ");
         int custId = input.nextInt();
         input.nextLine();
 
-        Customers foundCustomer = findCustomerById(custId);
-        if (foundCustomer == null) {
+        Customers customer = findCustomerById(custId);
+        if (customer == null) {
             System.out.println("❌ Customer not found.");
             return;
         }
 
-        System.out.print("Enter Product ID: ");
-        int productId = input.nextInt();
+        System.out.print("Enter Order ID: ");
+        int orderId = input.nextInt();
+        input.nextLine();
 
-        // Find product
-        Products foundProduct = null;
-        foundCustomer.getOrdersList().findFirst();
-        while (!foundCustomer.getOrdersList().last()) {
-            Orders o = foundCustomer.getOrdersList().retrieve();
-            if (o.getProduct().getProductId() == productId) {
-                foundProduct = o.getProduct();
+        Orders order = null;
+        customer.getOrderList().findFirst();
+        while (!customer.getOrderList().last()) {
+            if (customer.getOrderList().retrieve().getOrderId() == orderId) {
+                order = customer.getOrderList().retrieve();
                 break;
             }
-            foundCustomer.getOrdersList().findNext();
+            customer.getOrderList().findNext();
         }
-        if (foundProduct == null && foundCustomer.getOrdersList().retrieve().getProduct().getProductId() == productId)
-            foundProduct = foundCustomer.getOrdersList().retrieve().getProduct();
+        if (order == null && customer.getOrderList().retrieve().getOrderId() == orderId)
+            order = customer.getOrderList().retrieve();
 
-        if (foundProduct == null) {
-            System.out.println("❌ Product not found.");
+        if (order == null) {
+            System.out.println("❌ Order not found.");
             return;
         }
 
-        // Display all reviews
-        System.out.println("\n--- Reviews for Product: " + foundProduct.getName() + " ---");
-        System.out.println(foundProduct.getReviewsList().toString());
+        System.out.print("Enter Product ID to view reviews: ");
+        int productId = input.nextInt();
+        input.nextLine();
+
+        Products product = null;
+        order.getProductsList().findFirst();
+        while (!order.getProductsList().last()) {
+            if (order.getProductsList().retrieve().getProductId() == productId) {
+                product = order.getProductsList().retrieve();
+                break;
+            }
+            order.getProductsList().findNext();
+        }
+        if (product == null && order.getProductsList().retrieve().getProductId() == productId)
+            product = order.getProductsList().retrieve();
+
+        if (product == null) {
+            System.out.println("❌ Product not found in this order.");
+            return;
+        }
+
+        product.displayReviews();
     }
 
     //----------------------------------------------------------------------------------//
-    // --- Helper: find customer by ID ---
+    // Helper: find customer by ID
     private Customers findCustomerById(int id) {
-        if (customersList.empty())
-            return null;
+        if (customersList.empty()) return null;
 
         customersList.findFirst();
         while (!customersList.last()) {
