@@ -1,118 +1,182 @@
 package project212;
 
+// This class represents a product review in the e-commerce system
 public class Reviews {
 
-    // Each review has a unique ID to identify it
-    private int reviewId;
-
-    // The name of the customer who wrote the review
-    private String reviewerName;
-
-    // The rating given to the product (e.g., 1–5 stars)
-    private int rating;
-
-    // The comment or feedback text from the customer
-    private String comment;
-
-    // ⭐ Added: A reference to the product this review belongs to
-    private Products product;
+    //--- Attributes ---//
+    private int reviewId;           // Unique ID for each review
+    private int rating;             // Rating given by the customer (e.g., 1–5)
+    private String comment;         // Text comment for the review
+    private String reviewerName;    // Name of the customer who made the review
 
     //----------------------------------------------------------------------------------//
-    // --- Constructor ---
-    public Reviews(int reviewId, String reviewerName, int rating, String comment, Products product) {
-        this.reviewId = reviewId;          // Set unique review ID
-        this.reviewerName = reviewerName;  // Set name of reviewer
-        this.rating = rating;              // Set rating score
-        this.comment = comment;            // Set feedback text
-        this.product = product;            // ⭐ Added: link review to a specific product
+    // Constructor: creates a review with all necessary details
+    public Reviews(int reviewId, int rating, String comment, String reviewerName) {
+        this.reviewId = reviewId;         // Set unique ID
+        this.rating = rating;             // Set rating value
+        this.comment = comment;           // Set comment text
+        this.reviewerName = reviewerName; // Set name of reviewer
     }
 
     //----------------------------------------------------------------------------------//
-    // --- Method: Display review details ---
-    public void displayReview() {
-        // Prints full review details
-        System.out.println("Review ID: " + reviewId);
-        System.out.println("Reviewer: " + reviewerName);
-        System.out.println("Rating: " + rating + " stars");
-        System.out.println("Comment: " + comment);
-
-        // ⭐ Added: Show which product this review is for
-        if (product != null) {
-            System.out.println("For Product: " + product.getName() + " (ID: " + product.getProductId() + ")");
+    // Adds a new review to a given list of reviews
+    public void addReview(LinkedList<Reviews> reviews, Reviews review) {
+        // ⭐ Search if review already exists by ID to prevent duplicates
+        Reviews existing = searchById(reviews, review.getReviewId());
+        if (existing != null) {
+            System.out.println("Review with this ID already exists.");
+            return;
         }
-        System.out.println("-----------------------------------------");
+
+        // Insert the new review
+        reviews.insert(review);
+        System.out.println("Review added successfully.");
     }
 
     //----------------------------------------------------------------------------------//
-    // --- Method: Add review to a product’s review list ---
-    public void addToProduct() {
-        // ⭐ Added: This lets the review automatically attach itself to its product
-        if (product != null) {
-            product.addReview(this); // Call product's addReview method
-        } else {
-            System.out.println("Error: No product linked to this review.");
+    // Removes a review from the list using its ID
+    public void removeReview(LinkedList<Reviews> reviews, int reviewId) {
+        if (reviews.empty()) { // Check if there are no reviews
+            System.out.println("No reviews found.");
+            return;
         }
+
+        reviews.findFirst(); // Start from first review
+        while (!reviews.last()) { // Traverse all except last
+            if (reviews.retrieve().getReviewId() == reviewId) {
+                reviews.remove(); // Remove matching review
+                System.out.println("Review removed successfully.");
+                return;
+            }
+            reviews.findNext(); // Move to next node
+        }
+
+        // Check last review
+        if (reviews.retrieve().getReviewId() == reviewId) {
+            reviews.remove();
+            System.out.println("Review removed successfully.");
+            return;
+        }
+
+        System.out.println("Review not found.");
     }
 
     //----------------------------------------------------------------------------------//
-    // --- Method: String representation of review (for easy display) ---
-    @Override
+    // Updates a review's rating or comment
+    public void updateReview(LinkedList<Reviews> reviews, int reviewId, int newRating, String newComment) {
+        Reviews review = searchById(reviews, reviewId); // Search for the review
+
+        if (review == null) { // If not found
+            System.out.println("No review found with that ID.");
+            return;
+        }
+
+        // Update fields
+        review.setRating(newRating);
+        review.setComment(newComment);
+        System.out.println("Review updated successfully.");
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Searches for a review by its unique ID
+    public Reviews searchById(LinkedList<Reviews> reviews, int reviewId) {
+        if (reviews.empty()) return null; // Empty list → no review
+
+        reviews.findFirst(); // Start from head
+        while (!reviews.last()) {
+            if (reviews.retrieve().getReviewId() == reviewId)
+                return reviews.retrieve(); // Return found review
+            reviews.findNext();
+        }
+
+        // Check last node
+        if (reviews.retrieve().getReviewId() == reviewId)
+            return reviews.retrieve();
+
+        return null; // Not found
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Searches for reviews containing a keyword in their comment (case-insensitive)
+    public LinkedList<Reviews> searchByComment(LinkedList<Reviews> reviews, String keyword) {
+        LinkedList<Reviews> matches = new LinkedList<>(); // Store matches
+
+        if (reviews.empty()) return matches; // Empty list
+
+        reviews.findFirst();
+        while (!reviews.last()) {
+            if (reviews.retrieve().getComment().toLowerCase().contains(keyword.toLowerCase()))
+                matches.insert(reviews.retrieve());
+            reviews.findNext();
+        }
+
+        // Check last review
+        if (reviews.retrieve().getComment().toLowerCase().contains(keyword.toLowerCase()))
+            matches.insert(reviews.retrieve());
+
+        return matches; // Return all matching reviews
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Displays all reviews in the list
+    public void displayAllReviews(LinkedList<Reviews> reviews) {
+        if (reviews.empty()) {
+            System.out.println("No reviews available.");
+            return;
+        }
+
+        System.out.println("All Reviews:");
+        reviews.findFirst();
+        while (!reviews.last()) {
+            System.out.println(reviews.retrieve().toString());
+            reviews.findNext();
+        }
+
+        // Display last review
+        System.out.println(reviews.retrieve().toString());
+    }
+
+    //----------------------------------------------------------------------------------//
+    // Returns formatted review info
     public String toString() {
-        // Builds and returns a formatted string with review details
-        String info = "Review ID: " + reviewId +
-                      " | Reviewer: " + reviewerName +
-                      " | Rating: " + rating +
-                      " | Comment: " + comment;
-
-        // ⭐ Added: Include product name if exists
-        if (product != null) {
-            info += " | Product: " + product.getName();
-        }
-
-        return info + "\n";
+        return "Review ID = " + reviewId +
+               " || Rating = " + rating +
+               " || Reviewer = " + reviewerName +
+               " || Comment = " + comment;
     }
 
     //----------------------------------------------------------------------------------//
-    // --- Getters and Setters ---
+    //--- Getters and Setters ---//
 
     public int getReviewId() {
-        return reviewId;
+        return reviewId; // Return review ID
     }
 
     public void setReviewId(int reviewId) {
-        this.reviewId = reviewId;
-    }
-
-    public String getReviewerName() {
-        return reviewerName;
-    }
-
-    public void setReviewerName(String reviewerName) {
-        this.reviewerName = reviewerName;
+        this.reviewId = reviewId; // Update review ID
     }
 
     public int getRating() {
-        return rating;
+        return rating; // Return review rating
     }
 
     public void setRating(int rating) {
-        this.rating = rating;
+        this.rating = rating; // Update rating
     }
 
     public String getComment() {
-        return comment;
+        return comment; // Return comment text
     }
 
     public void setComment(String comment) {
-        this.comment = comment;
+        this.comment = comment; // Update comment text
     }
 
-    // ⭐ Added getter/setter for product reference
-    public Products getProduct() {
-        return product;
+    public String getReviewerName() {
+        return reviewerName; // Return reviewer’s name
     }
 
-    public void setProduct(Products product) {
-        this.product = product;
+    public void setReviewerName(String reviewerName) {
+        this.reviewerName = reviewerName; // Update reviewer’s name
     }
 }
