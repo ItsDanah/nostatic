@@ -1,148 +1,114 @@
 package project212;
 
+// The Orders class represents a single order placed by a customer.
+// Each order has its own list of products.
 public class Orders {
 
-	private LinkedList<Products> productsList;
+    //--- Attributes ---//
+    private int orderId;                          // Unique order identifier
+    private String orderDate;                     // Date the order was placed
+    private LinkedList<Products> productList;     // List of products in this order
+    private double totalAmount;                   // Total cost of the order
 
-	private int orderId;
-	Customers customer;
-	private int productId;
-	private double totalPrice;
-	private String orderDate;
-	private String status;
+    //----------------------------------------------------------------------------------//
+    // Constructor: Initializes a new order with ID, date, and an empty product list
+    public Orders(int orderId, String orderDate) {
+        this.orderId = orderId;                   // Set order ID
+        this.orderDate = orderDate;               // Set date
+        this.productList = new LinkedList<>();    // Create new empty linked list for products // ⭐ Added/Changed
+        this.totalAmount = 0.0;                   // Initialize total amount to 0
+    }
 
-	public Orders(int orderId, Customers customer, int productId, double totalPrice, String orderDate, String status) {
-		this.orderId = orderId;
-		this.customer = customer;
-		this.productId = productId; //deleted?
-		this.totalPrice = totalPrice;
-		this.orderDate = orderDate;
-		this.status = status;
-		this.productsList  = new LinkedList<> ();
-	}
+    //----------------------------------------------------------------------------------//
+    // Adds a product to this order
+    public void addProduct(Products product) {
+        productList.insert(product);               // Insert product into the order's product list
+        totalAmount += product.getPrice();         // Increase total order amount by product price // ⭐ Added/Changed
+    }
 
-	//----------------------------------------------------------------------------------//
+    //----------------------------------------------------------------------------------//
+    // Removes a product from this order by product ID
+    public void removeProduct(int productId) {
+        if (productList.empty()) {                 // If no products in the order
+            System.out.println("No products found in this order.");
+            return;
+        }
 
-	public void createOrder(Orders order) {
+        productList.findFirst();                   // Move pointer to the first product
+        while (!productList.last()) {              // Iterate through list
+            if (productList.retrieve().getProductId() == productId) { // If found
+                totalAmount -= productList.retrieve().getPrice();     // ⭐ Added/Changed: update total
+                productList.remove();               // Remove the product
+                System.out.println("Product removed from order.");
+                return;
+            }
+            productList.findNext();                // Move to next product
+        }
 
-		if ( searchById(order.getOrderId()) != null ) {
-			System.out.println("order already exists");
-			return;
-		}
-			customer.placeOrder(order); 
-			System.out.println("order created successfully");
-	}
+        // Check the last product
+        if (productList.retrieve().getProductId() == productId) {
+            totalAmount -= productList.retrieve().getPrice();         // ⭐ Added/Changed
+            productList.remove();
+            System.out.println("Product removed from order.");
+        } else {
+            System.out.println("Product not found in this order.");
+        }
+    }
 
-	//----------------------------------------------------------------------------------//
+    //----------------------------------------------------------------------------------//
+    // Calculate the total price of all products (in case updates happened)
+    public double calculateTotal() {
+        totalAmount = 0;                            // Reset total
+        if (productList.empty()) return totalAmount; // If no products, total stays 0
 
-	public void cancelOrder(int orderId) {
+        productList.findFirst();                    // Move to first product
+        while (!productList.last()) {               // Go through all products
+            totalAmount += productList.retrieve().getPrice();  // Add up each price
+            productList.findNext();
+        }
+        totalAmount += productList.retrieve().getPrice();      // Add the last one
+        return totalAmount;                         // Return total
+    }
 
-		Orders canceledOrder = searchById(orderId);
-		if ( canceledOrder == null ) {
-			System.out.println("No order found with this Id.");
-			return;
-		}
-		else 
-			if (!(canceledOrder.getStatus().equalsIgnoreCase("pending")))
-				System.out.println("You can't cancel an order after being shipped.");
-			else
-				canceledOrder.setStatus("Canceled");
-	}
+    //----------------------------------------------------------------------------------//
+    // ⭐ Added: Get the product list to access from Inventory or Customer
+    public LinkedList<Products> getProductList() {
+        return productList;                         // Return reference to product list
+    }
 
-	//----------------------------------------------------------------------------------//
+    //----------------------------------------------------------------------------------//
+    // Returns string representation of the order
+    public String toString() {
+        return "Order ID: " + orderId +
+               " | Date: " + orderDate +
+               " | Total: " + calculateTotal() + "\n" + // ⭐ Added/Changed: use method for accuracy
+               "Products:\n" + productList.toString();
+    }
 
-	public void updateStatus(int orderId , String status) {
-		Orders updatedOrder = searchById(orderId);
-		if ( updatedOrder == null ) {
-			System.out.println("No order found with this Id.");
-			return;
-		}
-		updatedOrder.setStatus(status);
-	}
+    //----------------------------------------------------------------------------------//
+    //--- Getters and Setters ---//
 
-	//----------------------------------------------------------------------------------//
+    public int getOrderId() {
+        return orderId;                             // Return order ID
+    }
 
-	public Orders searchById(int orderId) {
+    public void setOrderId(int orderId) {
+        this.orderId = orderId;                     // Update order ID
+    }
 
-		if (customer.getOrdersList().empty())
-			return null;
-		customer.getOrdersList().findFirst();
-		while(!(customer.getOrdersList().last())) {
-			if (customer.getOrdersList().retrieve().getOrderId() == orderId)
-				return customer.getOrdersList().retrieve();
-			customer.getOrdersList().findNext();
-		}
-		if (customer.getOrdersList().retrieve().getOrderId() == orderId)
-			return customer.getOrdersList().retrieve();
+    public String getOrderDate() {
+        return orderDate;                           // Return order date
+    }
 
-		return null;
-	}
+    public void setOrderDate(String orderDate) {
+        this.orderDate = orderDate;                 // Update order date
+    }
 
-	//----------------------------------------------------------------------------------//
+    public double getTotalAmount() {
+        return totalAmount;                         // Return current total
+    }
 
-	public void addProduct(Products product) { // ????????????/
-		productsList.insert(product);
-
-	}
-
-	public String toString() {
-		return "order ID = " + orderId + " || customer ID = " + customer.getCustomerId() + " || product ID = " + productId + " || total price = " + totalPrice + " || order date = " + orderDate + " || status = "+ status +"\n";
-	}
-
-	public LinkedList<Products> getProductsList() {
-		return productsList;
-	}
-
-	public void setProductsList(LinkedList<Products> productsList) {
-		this.productsList = productsList;
-	}
-
-	public int getOrderId() {
-		return orderId;
-	}
-
-	public void setOrderId(int orderId) {
-		this.orderId = orderId;
-	}
-
-	public Customers getCustomer() {
-		return customer;
-	}
-
-	public void setCustomer(Customers customer) {
-		this.customer = customer;
-	}
-
-	public int getProductId() {
-		return productId;
-	}
-
-	public void setProductId(int productId) {
-		this.productId = productId;
-	}
-
-	public double getTotalPrice() {
-		return totalPrice;
-	}
-
-	public void setTotalPrice(double totalPrice) {
-		this.totalPrice = totalPrice;
-	}
-
-	public String getOrderDate() {
-		return orderDate;
-	}
-
-	public void setOrderDate(String orderDate) {
-		this.orderDate = orderDate;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;             // Update total (manually if needed)
+    }
 }
