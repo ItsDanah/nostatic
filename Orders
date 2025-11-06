@@ -1,0 +1,148 @@
+package project212;
+
+public class Orders {
+
+	private LinkedList<Products> productsList;
+
+	private int orderId;
+	Customers customer;
+	private int productId;
+	private double totalPrice;
+	private String orderDate;
+	private String status;
+
+	public Orders(int orderId, Customers customer, int productId, double totalPrice, String orderDate, String status) {
+		this.orderId = orderId;
+		this.customer = customer;
+		this.productId = productId; //deleted?
+		this.totalPrice = totalPrice;
+		this.orderDate = orderDate;
+		this.status = status;
+		this.productsList  = new LinkedList<> ();
+	}
+
+	//----------------------------------------------------------------------------------//
+
+	public void createOrder(Orders order) {
+
+		if ( searchById(order.getOrderId()) != null ) {
+			System.out.println("order already exists");
+			return;
+		}
+			customer.placeOrder(order); 
+			System.out.println("order created successfully");
+	}
+
+	//----------------------------------------------------------------------------------//
+
+	public void cancelOrder(int orderId) {
+
+		Orders canceledOrder = searchById(orderId);
+		if ( canceledOrder == null ) {
+			System.out.println("No order found with this Id.");
+			return;
+		}
+		else 
+			if (!(canceledOrder.getStatus().equalsIgnoreCase("pending")))
+				System.out.println("You can't cancel an order after being shipped.");
+			else
+				canceledOrder.setStatus("Canceled");
+	}
+
+	//----------------------------------------------------------------------------------//
+
+	public void updateStatus(int orderId , String status) {
+		Orders updatedOrder = searchById(orderId);
+		if ( updatedOrder == null ) {
+			System.out.println("No order found with this Id.");
+			return;
+		}
+		updatedOrder.setStatus(status);
+	}
+
+	//----------------------------------------------------------------------------------//
+
+	public Orders searchById(int orderId) {
+
+		if (customer.getOrdersList().empty())
+			return null;
+		customer.getOrdersList().findFirst();
+		while(!(customer.getOrdersList().last())) {
+			if (customer.getOrdersList().retrieve().getOrderId() == orderId)
+				return customer.getOrdersList().retrieve();
+			customer.getOrdersList().findNext();
+		}
+		if (customer.getOrdersList().retrieve().getOrderId() == orderId)
+			return customer.getOrdersList().retrieve();
+
+		return null;
+	}
+
+	//----------------------------------------------------------------------------------//
+
+	public void addProduct(Products product) { // ????????????/
+		productsList.insert(product);
+
+	}
+
+	public String toString() {
+		return "order ID = " + orderId + " || customer ID = " + customer.getCustomerId() + " || product ID = " + productId + " || total price = " + totalPrice + " || order date = " + orderDate + " || status = "+ status +"\n";
+	}
+
+	public LinkedList<Products> getProductsList() {
+		return productsList;
+	}
+
+	public void setProductsList(LinkedList<Products> productsList) {
+		this.productsList = productsList;
+	}
+
+	public int getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(int orderId) {
+		this.orderId = orderId;
+	}
+
+	public Customers getCustomer() {
+		return customer;
+	}
+
+	public void setCustomer(Customers customer) {
+		this.customer = customer;
+	}
+
+	public int getProductId() {
+		return productId;
+	}
+
+	public void setProductId(int productId) {
+		this.productId = productId;
+	}
+
+	public double getTotalPrice() {
+		return totalPrice;
+	}
+
+	public void setTotalPrice(double totalPrice) {
+		this.totalPrice = totalPrice;
+	}
+
+	public String getOrderDate() {
+		return orderDate;
+	}
+
+	public void setOrderDate(String orderDate) {
+		this.orderDate = orderDate;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+}
