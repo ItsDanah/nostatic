@@ -1,69 +1,118 @@
 package project212;
 
-// The Reviews class represents a single review for a specific product.
 public class Reviews {
 
-    //--- Attributes ---//
-    private String reviewerName;   // Name of the customer writing the review
-    private String comment;        // The text feedback written by the customer
-    private double rating;         // Rating given to the product (e.g., 1.0 - 5.0 scale)
+    // Each review has a unique ID to identify it
+    private int reviewId;
+
+    // The name of the customer who wrote the review
+    private String reviewerName;
+
+    // The rating given to the product (e.g., 1–5 stars)
+    private int rating;
+
+    // The comment or feedback text from the customer
+    private String comment;
+
+    // ⭐ Added: A reference to the product this review belongs to
+    private Products product;
 
     //----------------------------------------------------------------------------------//
-    // Constructor: Creates a review with reviewer name, comment, and rating
-    public Reviews(String reviewerName, String comment, double rating) {
-        this.reviewerName = reviewerName;   // Assign reviewer name
-        this.comment = comment;             // Assign comment text
-        setRating(rating);                  // ⭐ Added/Changed: Validate and assign rating using setter
+    // --- Constructor ---
+    public Reviews(int reviewId, String reviewerName, int rating, String comment, Products product) {
+        this.reviewId = reviewId;          // Set unique review ID
+        this.reviewerName = reviewerName;  // Set name of reviewer
+        this.rating = rating;              // Set rating score
+        this.comment = comment;            // Set feedback text
+        this.product = product;            // ⭐ Added: link review to a specific product
     }
 
     //----------------------------------------------------------------------------------//
-    // Default constructor: allows creating an empty review if needed
-    public Reviews() {
-        reviewerName = "";                  // Initialize with empty name
-        comment = "";                       // Initialize with empty comment
-        rating = 0;                         // Default rating set to 0
+    // --- Method: Display review details ---
+    public void displayReview() {
+        // Prints full review details
+        System.out.println("Review ID: " + reviewId);
+        System.out.println("Reviewer: " + reviewerName);
+        System.out.println("Rating: " + rating + " stars");
+        System.out.println("Comment: " + comment);
+
+        // ⭐ Added: Show which product this review is for
+        if (product != null) {
+            System.out.println("For Product: " + product.getName() + " (ID: " + product.getProductId() + ")");
+        }
+        System.out.println("-----------------------------------------");
     }
 
     //----------------------------------------------------------------------------------//
-    // Displays review information in a readable format
+    // --- Method: Add review to a product’s review list ---
+    public void addToProduct() {
+        // ⭐ Added: This lets the review automatically attach itself to its product
+        if (product != null) {
+            product.addReview(this); // Call product's addReview method
+        } else {
+            System.out.println("Error: No product linked to this review.");
+        }
+    }
+
+    //----------------------------------------------------------------------------------//
+    // --- Method: String representation of review (for easy display) ---
+    @Override
     public String toString() {
-        // Combines all review fields in a single formatted line
-        return "Reviewer: " + reviewerName +
-               " || Rating: " + rating +
-               " || Comment: \"" + comment + "\"";
+        // Builds and returns a formatted string with review details
+        String info = "Review ID: " + reviewId +
+                      " | Reviewer: " + reviewerName +
+                      " | Rating: " + rating +
+                      " | Comment: " + comment;
+
+        // ⭐ Added: Include product name if exists
+        if (product != null) {
+            info += " | Product: " + product.getName();
+        }
+
+        return info + "\n";
     }
 
     //----------------------------------------------------------------------------------//
-    //--- Getters and Setters ---//
+    // --- Getters and Setters ---
+
+    public int getReviewId() {
+        return reviewId;
+    }
+
+    public void setReviewId(int reviewId) {
+        this.reviewId = reviewId;
+    }
 
     public String getReviewerName() {
-        return reviewerName;                // Return name of reviewer
+        return reviewerName;
     }
 
     public void setReviewerName(String reviewerName) {
-        this.reviewerName = reviewerName;   // Update reviewer name
+        this.reviewerName = reviewerName;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
     }
 
     public String getComment() {
-        return comment;                     // Return review comment text
+        return comment;
     }
 
     public void setComment(String comment) {
-        this.comment = comment;             // Update review comment
+        this.comment = comment;
     }
 
-    public double getRating() {
-        return rating;                      // Return numeric rating
+    // ⭐ Added getter/setter for product reference
+    public Products getProduct() {
+        return product;
     }
 
-    public void setRating(double rating) {
-        // ⭐ Added/Changed: Ensure rating stays within valid range (1.0 to 5.0)
-        if (rating < 1.0) {                 // If rating too low
-            this.rating = 1.0;              // Clamp to minimum
-        } else if (rating > 5.0) {          // If rating too high
-            this.rating = 5.0;              // Clamp to maximum
-        } else {
-            this.rating = rating;           // Otherwise accept it
-        }
+    public void setProduct(Products product) {
+        this.product = product;
     }
 }
